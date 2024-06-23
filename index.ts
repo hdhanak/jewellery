@@ -4,6 +4,8 @@ import bodyParser from 'body-parser'
 import { env } from './src/env';
 import { logger, loggerFile } from './src/lib/logger';
 import { createRouter } from './src/router';
+
+
 // import { createRouter } from './v1/routes'
 // import {logger, loggerFile} from '../../../api/lib/logger'
 /** create server module */
@@ -12,11 +14,14 @@ export const createServer = ():void =>{
  const port = env.APPPORT || 3000;
  const host = env.HOST;
 console.log(env.APPPORT,'env.APPPORT');
-/* To handle invalid JSON data request */
-app.use(bodyParser.json({limit: '50mb'}));
+    /* To handle invalid JSON data request */
+    app.use(express.json()); // for JSON data
+    app.use(express.urlencoded({ extended: true })); // for URL-encoded data
 
-/* For parsing urlencoded data */
-app.use(bodyParser.urlencoded({limit: '50mb', extended: true }));
+    // app.use(bodyParser.json({limit: '50mb'}));
+
+    // /* For parsing urlencoded data */
+    // app.use(bodyParser.urlencoded({limit: '50mb', extended: true }));
 
  /** add header */
  app.use(function(req,res,next){

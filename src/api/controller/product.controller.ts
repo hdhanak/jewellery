@@ -11,10 +11,13 @@ import { addProduct, deleteProduct, findAllProducts, findProduct, updateProduct 
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
     try {
+        console.log(req.body, "req.body.product_category_id");
         let where: { email: string } = { email: req.body.email };
         if (!req.body.product_category_id) {
             return ErrorResponse(res, Constants.PRODUCTS.INVALID_CATEGORY_ID);
         }
+        console.log(req.body, "body");
+        const productImages = (req.files as Express.Multer.File[]).map(file => file.filename);
 
         const payloadRequest: any = {
             product_code: req.body.product_code as string,
@@ -22,21 +25,21 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
             product_title: req.body.product_title as string,
             product_detail: req.body.product_detail as string,
             product_sub_detail: req.body.product_sub_detail as string,
-            product_image: req.body.product_image as string,
-            product_category: req.body.product_category_id as number,
-            product_type: req.body.product_type as number,
-            occasion: req.body.occasion as string,
-            gold_purity: req.body.gold_purity as number,
-            gross_weight: req.body.gross_weight as string,
-            gender: req.body.gender as number,
-            height: req.body.height as string,
-            width: req.body.width as string,
-            size: req.body.size as string,
-            diamond_clarity: req.body.diamond_clarity as string,
+            product_images: productImages as string[],
+            product_category: parseInt(req.body.product_category_id as string, 10),
+            product_type: parseInt(req.body.product_type as string, 10),
+            occasion: req.body.occasion as string, // Assuming occasion is a comma-separated string
+            gold_purity: parseInt(req.body.gold_purity as string, 10),
+            gross_weight: parseFloat(req.body.gross_weight as string),
+            gender: parseInt(req.body.gender as string, 10),
+            height: parseFloat(req.body.height as string),
+            width: parseFloat(req.body.width as string),
+            size: req.body.size as string, // Assuming size is meant to remain a string
+            diamond_clarity: parseInt(req.body.diamond_clarity as string, 10),
             diamond_color: req.body.diamond_color as string,
-            diamond_weight: req.body.diamond_weight as string,
-            no_of_diamonds: req.body.no_of_diamonds as number,
-            status: req.body.status as boolean
+            diamond_weight: parseFloat(req.body.diamond_weight as string),
+            no_of_diamonds: parseInt(req.body.no_of_diamonds as string, 10),
+            status: req.body.status === 'true' // Converting to boolean
         };
 
         const result = await addProduct(where, payloadRequest);
@@ -51,29 +54,34 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 
 export const updateProductById = async (req: Request, res: Response): Promise<void> => {
     try {
-        let where: object = { id: req.body.id };
+        let where: { id: number } = { id: req.body.id };
+        
+        // Handle multiple file uploads
+        const productImages = (req.files as Express.Multer.File[]).map(file => file.filename);
+
         const payloadRequest: any = {
             product_code: req.body.product_code as string,
             product_name: req.body.product_name as string,
             product_title: req.body.product_title as string,
             product_detail: req.body.product_detail as string,
             product_sub_detail: req.body.product_sub_detail as string,
-            product_image: req.body.product_image as string,
-            product_category: req.body.product_category_id as number,
-            product_type: req.body.product_type as number,
-            occasion: req.body.occasion as string,
-            gold_purity: req.body.gold_purity as number,
-            gross_weight: req.body.gross_weight as string,
-            gender: req.body.gender as number,
-            height: req.body.height as string,
-            width: req.body.width as string,
-            size: req.body.size as string,
-            diamond_clarity: req.body.diamond_clarity as string,
+            product_images: productImages.length > 0 ? productImages : req.body.product_images as string[],
+            product_category: parseInt(req.body.product_category_id as string, 10),
+            product_type: parseInt(req.body.product_type as string, 10),
+            occasion: req.body.occasion as string, // Assuming occasion is a comma-separated string
+            gold_purity: parseInt(req.body.gold_purity as string, 10),
+            gross_weight: parseFloat(req.body.gross_weight as string),
+            gender: parseInt(req.body.gender as string, 10),
+            height: parseFloat(req.body.height as string),
+            width: parseFloat(req.body.width as string),
+            size: req.body.size as string, // Assuming size is meant to remain a string
+            diamond_clarity: parseInt(req.body.diamond_clarity as string, 10),
             diamond_color: req.body.diamond_color as string,
-            diamond_weight: req.body.diamond_weight as string,
-            no_of_diamonds: req.body.no_of_diamonds as number,
-            status: req.body.status as boolean
+            diamond_weight: parseFloat(req.body.diamond_weight as string),
+            no_of_diamonds: parseInt(req.body.no_of_diamonds as string, 10),
+            status: req.body.status === 'true' // Converting to boolean
         };
+
         const result = await updateProduct(where, payloadRequest);
         return successResponse(res, Constants.PRODUCTS.UPDATED_SUCCESSFULLY, result);
 
