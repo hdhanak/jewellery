@@ -8,6 +8,8 @@ import {
 import { getOffset } from "../../helpers/utility";
 import { Constants } from "../../config/constants";
 import { addProduct, deleteProduct, findAllProducts, findProduct, updateProduct } from "../model/product.model";
+import { toLowerCase } from "fp-ts/lib/string";
+import { string } from "yup";
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -55,7 +57,8 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 export const updateProductById = async (req: Request, res: Response): Promise<void> => {
     try {
         let where: { id: number } = { id: req.body.id };
-        
+        console.log(req.files, "req.files");
+
         // Handle multiple file uploads
         const productImages = (req.files as Express.Multer.File[]).map(file => file.filename);
 
@@ -65,10 +68,10 @@ export const updateProductById = async (req: Request, res: Response): Promise<vo
             product_title: req.body.product_title as string,
             product_detail: req.body.product_detail as string,
             product_sub_detail: req.body.product_sub_detail as string,
-            product_images: productImages.length > 0 ? productImages : req.body.product_images as string[],
+            // product_images: productImages.length > 0 ? productImages : req.body.product_images as string[],
             product_category: parseInt(req.body.product_category_id as string, 10),
             product_type: parseInt(req.body.product_type as string, 10),
-            occasion: req.body.occasion as string, // Assuming occasion is a comma-separated string
+            // occasion: req.body.occasion as string, // Assuming occasion is a comma-separated string
             gold_purity: parseInt(req.body.gold_purity as string, 10),
             gross_weight: parseFloat(req.body.gross_weight as string),
             gender: parseInt(req.body.gender as string, 10),
@@ -82,7 +85,14 @@ export const updateProductById = async (req: Request, res: Response): Promise<vo
             status: req.body.status === 'true' // Converting to boolean
         };
 
-        const result = await updateProduct(where, payloadRequest);
+        const relationEntityPayloadRequest: any = {
+            product_images: productImages.length > 0 ? productImages : req.body.product_images as string[],
+            occasion: req.body.occasion as string, // Assuming occasion is a comma-separated string
+        };
+
+
+
+        const result = await updateProduct(where, payloadRequest, relationEntityPayloadRequest);
         return successResponse(res, Constants.PRODUCTS.UPDATED_SUCCESSFULLY, result);
 
     } catch (e) {
@@ -127,62 +137,64 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
     try {
         let {
-            orderBy
+            order_by
 
         } = req.body ?? {};
 
         let where: any = {};
-        var filter: any = [];
-
+        var searchArr: string[] = [];
+        var filterArr: string[] = [];
 
         let limit = (req.body.limit) ? parseInt(req.body.limit as string) : 10;
         let skip = (req.body.pageNo) ? getOffset(parseInt(req.body.pageNo as string), limit) : 0;
 
-        // var keys = Object.keys(req.body);
-        // if (keys.length > 0) {
-        //     for (const key in req.body) {
-        //         if (!(key == "limit" || key == "pageNo" || key == "customerOrganization" || key == "roles" || key == 'orderBy') && (req.body[key] || req.body[key] == false)) {
-        //             if (req.body[key]) {
-        //                 if ((typeof req.body[key] === "string" || typeof req.body[key] === "number" || typeof req.body[key] === "boolean") && req.body[key] !== "") {
-        //                     where[`${key}`] = `%${toLowerCase((req.body[key]).toString() as string)}%`;
-        //                     filter.push(`cast(users.${key} AS VARCHAR) ILIKE :${key}`);
-        //                 }
+        console.log("test");
+        var keys = req.body && req.body.filter && Object.keys(req?.body?.filter);
+        if (keys.length > 0) {
+            for (const key in req.body?.filter) {
+                if (!(key == "limit" || key == "pageNo" || key == "customerOrganization" || key == "roles" || key == 'orderBy') && (req.body?.filter[key] || req.body?.filter[key] == false)) {
+                    if (req.body.filter[key]) {
+                        if ((typeof req.body.filter[key] === "string" || typeof req.body.filter[key] === "number" || typeof req.body.filter[key] === "boolean") && req.body.filter[key] !== "") {
+                            where[`${key}`] = `%${toLowerCase((req.body.filter[key]).toString() as string)}%`;
+                            if (key == 'occasion') {
+                                searchArr.push(`cast(occasion.${key} AS VARCHAR) ILIKE :${key}`);
+                            } else if (key == 'product_category_name') {
+                                searchArr.push(`cast(product_category.${key} AS VARCHAR) ILIKE :${key}`);
+                            } else {
+                                searchArr.push(`cast(product.${key} AS VARCHAR) ILIKE :${key}`);
+                            }
+                        }
+                    }
+                }
 
-        //             }
-        //         }
-        //         if (key == "roles") {
-        //             if (req.body[key]) {
-        //                 if (typeof req.body[key] === "string" && req.body[key] !== "") {
-        //                     where[`${key}`] = `%${toLowerCase((req.body[key]).toString() as string)}%`;
-        //                     filter.push(`cast(roles.name AS VARCHAR) ILIKE :${key}`);
-        //                 }
-
-        //             }
-        //         } else if (key == "customerOrganization") {
-        //             if (req.body[key]) {
-        //                 if (typeof req.body[key] === "string" && req.body[key] !== "") {
-        //                     where[`${key}`] = `%${toLowerCase((req.body[key]).toString() as string)}%`;
-        //                     filter.push(`cast(customerOrganization.companyName AS VARCHAR) ILIKE :${key}`);
-        //                 } else if (typeof req.body[key] === "number" && req.body[key] !== "") {
-        //                     where[`${key}`] = `%${toLowerCase((req.body[key]).toString() as string)}%`;
-        //                     filter.push(`cast(customerOrganization.id AS VARCHAR) ILIKE :${key}`);
-        //                 }
-
-        //             }
-        //         }
-        //     }
-        // }
+                if (Array.isArray(req.body.filter[key]) && req.body.filter[key].length > 0) {
+                    where[`${key}`] = req.body.filter[key];
+                    if (key == "occasion") {
+                        filterArr.push(`occasion.${key} IN(:...${key})`);
+                    } else if (key == "product_category_name") {
+                        filterArr.push(`product_category.${key} IN(:...${key})`);
+                    } else {
+                        filterArr.push(`product.${key} IN(:...${key})`);
+                    }
+                }
+            }
+        }
 
 
-        // let str = filter.length > 0 ? filter.join(" AND ") : ``;
+        let search: string = searchArr.length > 0 ? searchArr.join(" AND ") : ``;
+        let filter: string = filterArr.length > 0 ? filterArr.join(" AND ") : ``;
+
+        var tableName = (order_by?.field_name == 'occasion') ? "occasion" : (order_by?.field_name == 'product_category_name') ? "product_category" : "product";
+        var fieldName = order_by?.field_name ?? "id";
+
+        var orderField = `${tableName}.${fieldName}`;
+        var order = order_by?.order ?? "DESC";
+
         console.log(where, "where");
+        console.log(search, "search");
+        console.log(filter, "filter");
 
-        console.log(filter, "cond");
-
-        var orderField: string = orderBy?.fieldName ?? "id";
-        var order = orderBy?.order ?? "DESC";
-
-        const result = await findAllProducts(where, skip, limit, orderField, order);
+        const result = await findAllProducts(where, skip, limit, orderField, order, search, filter);
 
         // Return success response
         return successResponse(res, Constants.PRODUCTS.RETRIEVED_ALL_SUCCESSFULLY, result);

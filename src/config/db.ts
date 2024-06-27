@@ -44,6 +44,7 @@ const options: DataSourceOptions & SeederOptions = {
   username: env.DB_USER,
   password: env.DB_PASS,
   database: env.DB_NAME,
+  ssl: true,
   // synchronize: true,
   entities: entities,
   logging: true,

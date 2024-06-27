@@ -47,10 +47,16 @@ export async function LoginUser(where: object, password: string) {
             console.log(password);
             console.log(res.password);
             const validPassword = await bcrypt.compare(password, res.password);
+            console.log(validPassword, "validPassword");
+
             if (validPassword) {
+                console.log("1111");
                 const token = sign(userdata);
+                console.log("222");
+
                 console.log(token);
                 user.auth_token = token;
+                console.log(user, "user");
                 return user
 
             } else {

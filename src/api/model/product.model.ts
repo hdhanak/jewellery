@@ -14,7 +14,7 @@ export async function addProduct(whereClause: object, productData: any): Promise
 
         const createdProduct = await PostgresDataSource.manager.save(PostgresDataSource.manager.create(Product, productData));
         console.log(productData, "productData.product_images");
-        if (productData && productData.product_images.length != 0) {
+        if (productData && productData.product_images && productData.product_images.length != 0) {
             const productImageEntities = productData.product_images.map((imageUrl: string) => {
                 if (imageUrl) {
                     return PostgresDataSource.manager.create(ProductImage, {
@@ -27,7 +27,7 @@ export async function addProduct(whereClause: object, productData: any): Promise
             await PostgresDataSource.manager.save(ProductImage, productImageEntities);
         }
 
-        if (productData && productData.occasion != null) {
+        if (productData && productData.occasion && productData.occasion != null) {
             console.log(productData.occasion.split(','), "split");
             const productOccasionEntities = productData.occasion.split(',').map((occasion: number) => {
                 if (occasion) {
@@ -46,9 +46,10 @@ export async function addProduct(whereClause: object, productData: any): Promise
     }
 }
 
-export async function updateProduct(whereClause: object, updateData: any): Promise<object> {
+export async function updateProduct(whereClause: object, updateData: any, relationEntityPayloadRequest: any): Promise<object> {
     try {
         const where = JSON.parse(JSON.stringify(whereClause));
+        console.log(where, "where");
 
         // Update the product information
         const updateResult = await PostgresDataSource
@@ -72,14 +73,14 @@ export async function updateProduct(whereClause: object, updateData: any): Promi
         const updatedProduct = updateResult.raw[0];
         console.log("111");
         // Handle product images
-        if (updateData && updateData.product_images.length !== 0) {
+        if (relationEntityPayloadRequest && relationEntityPayloadRequest.product_images && relationEntityPayloadRequest.product_images.length !== 0) {
             // First, remove existing images
             console.log("1212");
 
-            await PostgresDataSource.manager.delete(ProductImage, { product_id: updatedProduct.id });
+            await PostgresDataSource.manager.delete(ProductImage, { product: updatedProduct.id });
 
             // Then, add new images
-            const productImageEntities = updateData.product_images.map((imageUrl: string) => {
+            const productImageEntities = relationEntityPayloadRequest.product_images.map((imageUrl: string) => {
                 if (imageUrl) {
                     return PostgresDataSource.manager.create(ProductImage, {
                         product: updatedProduct,
@@ -93,14 +94,14 @@ export async function updateProduct(whereClause: object, updateData: any): Promi
         console.log("222");
 
         // Handle occasion data
-        if (updateData && updateData.occasion != null) {
+        if (relationEntityPayloadRequest && relationEntityPayloadRequest.occasion && relationEntityPayloadRequest.occasion != null) {
             // First, remove existing occasions
             console.log("12***12");
 
             await PostgresDataSource.manager.delete(ProductOccasion, { product_id: updatedProduct.id });
 
             // Then, add new occasions
-            const productOccasionEntities = updateData.occasion.split(',').map((occasion: number) => {
+            const productOccasionEntities = relationEntityPayloadRequest.occasion.split(',').map((occasion: number) => {
                 if (occasion) {
                     return PostgresDataSource.manager.create(ProductOccasion, {
                         product_id: updatedProduct.id,
@@ -159,15 +160,18 @@ export async function findProduct(id: number): Promise<Product | null> {
     }
 }
 
-export async function findAllProducts(where: any, skip: number, limit: number, orderField: string, order: any): Promise<Product[]> {
+export async function findAllProducts(where: any, skip: number, limit: number, orderField: string, order: any, search: string, filter: string): Promise<Product[]> {
     try {
         console.log(skip, limit, orderField, order, "skip, limit, orderField, order");
         const query: SelectQueryBuilder<Product> = PostgresDataSource
             .createQueryBuilder(Product, "product")
             .leftJoinAndSelect("product.product_category", "product_category")
+            .leftJoinAndSelect("product.occasion", "occasion")
+            .where(search ? search : "1=1", { ...where })
+            .andWhere(filter ? filter : "1=1", { ...where })
             .skip(skip)
             .take(limit)
-            .orderBy(`product.${orderField}`, order);
+            .orderBy(`${orderField}`, order);
 
         const [products, count] = await query.getManyAndCount();
         return products;

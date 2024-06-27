@@ -1,4 +1,4 @@
-import { Constants } from "../../../../Client Project/Apogee phase-2 Backend/src/api/config/constants";
+import { Constants } from "../config/constants";
 
 /** success created */
 export const successMessage = (res: any, msg: string): void => {
