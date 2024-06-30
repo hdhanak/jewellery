@@ -16,8 +16,7 @@ export const createServer = ():void =>{
 console.log(env.APPPORT,'env.APPPORT');
     /* To handle invalid JSON data request */
     app.use(express.json()); // for JSON data
-    app.use(express.urlencoded({ extended: true })); // for URL-encoded data
-
+    app.use(express.urlencoded({ limit: '100mb', extended: true })); // for URL-encoded data
     // app.use(bodyParser.json({limit: '50mb'}));
 
     // /* For parsing urlencoded data */

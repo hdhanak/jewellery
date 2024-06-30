@@ -1,213 +1,98 @@
-// import { Users } from "../entities/users";
-// import { Role } from "../entities/role";
+import { PostgresDataSource } from "../../config/db";
+import { Role } from "../entity/role.entity";
+import date from "date-and-time";
+import { logger } from "../lib/logger";
+import { Constants } from "../../config/constants";
 
-// import { CustomerOrganization } from "../entities/customerOrganization";
-// import { PostgresDataSource } from "../../config/db";
-// import { sign } from "../../lib/jwt";
-// import { logger } from "../../lib/logger";
-// import { Permission } from "../entities/permission";
-// import { RolesPermission } from "../entities/rolesPermission";
-// import date from "date-and-time";
-// import { Obligation } from "../entities/obligation";
-// import { Disclosure_obligations_obligation } from "../entities/disclosure_obligations_obligation";
+export async function addRole(whereClause: object, userData: Partial<Role>): Promise<object> {
+    try {
+        if (!whereClause || !userData) {
+            throw new Error("Invalid parameters. Both whereClause and userData must be provided.");
+        }
 
-
-// export async function addRole(roleData: object, permissionData: object, callback: any) {
-//   try {
-//     const roles = JSON.parse(JSON.stringify(roleData));
-//     const permissionsData = JSON.parse(JSON.stringify(permissionData));
-
-//     await PostgresDataSource.manager.save(PostgresDataSource.manager.create(Role, roles), callback).then(async (response) => {
-
-//       const role = JSON.parse(JSON.stringify(response));
-//       const roleRepository = PostgresDataSource.getRepository(Role);
-//       const roleDetails = await roleRepository.findOneBy({ id: role.id });
-//       console.log(roleDetails);
-//       //  permissionsData.forEach(async (permission:any)=>{
-//       for (var i = 0; i < permissionsData.length; i++) {
-//         // @ts-ignore
-//         var permission: any = permissionData[i];
-//         const permissionRepository = PostgresDataSource.getRepository(Permission);
-//         const permD = await permissionRepository.findOneBy({ id: permission.permissionId });
-//         var obj: object = {
-//           permission: permD,
-//           roles: roleDetails,
-//           readAccess: permission.access,
-//           writeAccess: permission.modify,
-//           createdDate: date.format(new Date(),
-//             "YYYY-MM-DD HH:mm:ss")
-//         };
-//         console.log(obj);
-//         await PostgresDataSource.manager.save(PostgresDataSource.manager.create(RolesPermission, obj), callback).then(async (rolePermission) => {
-//           if (rolePermission) {
-//             console.log("inserted");
-//           } else {
-//             callback("error");
-//           }
-//         }).catch((err) => {
-//           callback(err, "");
-//         });
-//         //  })
-//       }
-
-//       callback("", roles);
-
-//       // permissionsData.permission=permission;
-//       // permissionsData.role=roleDetails;
+        const where = JSON.parse(JSON.stringify(whereClause));
+        const data = userData
 
 
-//     }).catch((err) => {
-//       // callback(err, '');
-//       if (err.driverError !== undefined) {
-//         if (err.driverError.detail === "Key (name)=(User Role 124) already exists.")
-//           callback("Role name is already exist", "");
-//         else
-//           callback(err.driverError.detail, "");
+        const savedUserData = await PostgresDataSource.manager.save(PostgresDataSource.manager.create(Role, data));
 
-//       } else {
-//         callback(err, "");
-//       }
-//     });
+        return savedUserData;
+    } catch (error: any) {
+        logger.error(`Error adding user: ${error.message}`);
+        throw error;
+    }
+}
 
-//   } catch (error: any) {
-//     logger.error(error);
-//     callback(error, "");
+export async function updateRole(where: any, roleData: object) {
+    try {
+        const roles = JSON.parse(JSON.stringify(roleData));
+        const updateResult = await PostgresDataSource
+            .createQueryBuilder()
+            .update(Role)
+            .set(roleData)
+            .where(where)
+            .returning("*")
+            .updateEntity(true)
+            .execute();
 
-//     //  throw new Error(error);
-//   }
-// }
+        if (updateResult.affected === 0) {
+            // throw new Error(Constants.PRODUCTS.NOT_FOUND_OR_NO_CHANGES_APPLIED);
+            return new Error(Constants.PRODUCTS.NOT_FOUND_OR_NO_CHANGES_APPLIED);
+        }
 
-// export async function updateRole(roleData: object, permissionData: object, roleId: any, callback: any) {
-//   try {
-//     const roles = JSON.parse(JSON.stringify(roleData));
-//     const permissionsData = JSON.parse(JSON.stringify(permissionData));
+        const updatedData = updateResult.raw[0];
+        return updatedData;
 
-//     const rolePermissionRepository = PostgresDataSource.getRepository(RolesPermission);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error);
+    }
+}
 
-//     PostgresDataSource.manager.update(Role, roleId, roles).then(async (response) => {
+export async function deleteRole(roleId: any, callback: any) {
+    try {
+        if (roleId === "1") {
+            callback("This is Administrator Role. You will not delete this role, Please try to delete other role.", "");
+        } else {
+            await PostgresDataSource
+                .createQueryBuilder()
+                .delete()
+                .from(Role)
+                .where("id = :id", { id: roleId })
+                .execute().then((deleteRes) => {
+                    console.log(deleteRes);
+                    if (deleteRes.affected)
+                        callback("", deleteRes);
+                    else
+                        callback("Invalid Role Id", "");
+                }).catch(error => {
+                    if (error.driverError !== undefined && error.driverError.detail !== undefined) {
+                        var table = `${error.driverError.table}`.charAt(0).toUpperCase() + `${error.driverError.table}`.slice(1);
+    // if (table == "Disclosure_obligations_obligation") {
+    //     return callback(`Please unlink this record from Link-table`, '');
+    // }
+                        return callback(`Please unlink this role from ${table}`, "");
 
-//       console.log(response);
-//       for (var i = 0; i < permissionsData.length; i++) {
-//         // @ts-ignore
-//         var permission: any = permissionData[i];
-//         // var obj: object = {
-//         //   readAccess: permission.access,
-//         //   writeAccess: permission.modify,
-//         //   updatedDate: date.format(new Date(),
-//         //     "YYYY-MM-DD HH:mm:ss")
-//         // };
+                    } else callback(error, "");
+                });
+        }
+    } catch (error: any) {
+        callback("error", error);
+    }
+}
 
-//         var obj: object = {
-//           permission: permission.permissionId,
-//           roles: roleId,
-//           readAccess: permission.access,
-//           writeAccess: permission.modify,
-//           updatedDate: date.format(new Date(),
-//             "YYYY-MM-DD HH:mm:ss")
-//         };
+export async function FindAllRoles(where: any, offset: number, limit: number, orderField: string, order: any, callback: any) {
+    const roleRepository = PostgresDataSource.getRepository(Role);
 
-//         rolePermissionRepository.upsert([
-//             obj
-//           ],
-//           ["permission", "roles"]
-//         ).then(async (updateResults) => {
-//           true;
-
-//           // console.log(updateResults);
-
-
-//           if (updateResults) {
-//             console.log("updated", updateResults);
-//           } else {
-//             callback("error");
-//           }
-//         }).catch((err) => {
-//           // console.log(err);
-//           callback(err, "");
-//         });
-
-//         // await PostgresDataSource
-//         //   .createQueryBuilder()
-//         //   .update(RolesPermission)
-//         //   .set(obj)
-//         //   .where({
-//         //     permission: permission.permissionId,
-//         //     roles: roleId
-//         //   })
-//         //   .execute().then(async (updateResults) => {
-//         //     true;
-//         //
-//         //     console.log(updateResults);
-//         //
-//         //
-//         //     if (updateResults) {
-//         //       console.log("updated", updateResults);
-//         //     } else {
-//         //       callback("error");
-//         //     }
-//         //   }).catch((err) => {
-//         //     console.log(err);
-//         //     callback(err, "");
-//         //   });
-//       }
-
-//       callback("", response);
-
-//     }).catch((err) => {
-//       console.log(err);
-//       callback(err, "");
-//     });
-
-//   } catch (error: any) {
-//     logger.error(error);
-//     throw new Error(error);
-//   }
-// }
-
-// export async function deleteRole(roleId: any, callback: any) {
-//   try {
-//     if (roleId === "1") {
-//       callback("This is Administrator Role. You will not delete this role, Please try to delete other role.", "");
-//     } else {
-//       await PostgresDataSource
-//         .createQueryBuilder()
-//         .delete()
-//         .from(Role)
-//         .where("id = :id", { id: roleId })
-//         .execute().then((deleteRes) => {
-//           console.log(deleteRes);
-//           if (deleteRes.affected)
-//             callback("", deleteRes);
-//           else
-//             callback("Invalid Role Id", "");
-//         }).catch(error => {
-//           if (error.driverError !== undefined && error.driverError.detail !== undefined) {
-//             var table = `${error.driverError.table}`.charAt(0).toUpperCase() + `${error.driverError.table}`.slice(1);
-//             // if (table == "Disclosure_obligations_obligation") {
-//             //     return callback(`Please unlink this record from Link-table`, '');
-//             // }
-//             return callback(`Please unlink this role from ${table}`, "");
-
-//           } else callback(error, "");
-//         });
-//     }
-//   } catch (error: any) {
-//     callback("error", error);
-//   }
-// }
-
-// export async function FindAllRoles(where: any, offset: number, limit: number, orderField: string, order: any, callback: any) {
-//   const roleRepository = PostgresDataSource.getRepository(Role);
-
-//   const [list, count] = await PostgresDataSource
-//     .getRepository(Role)
-//     .createQueryBuilder("roles")
-//     .leftJoinAndSelect("roles.rolesPermission", "permission")
-//     .leftJoinAndSelect("permission.permission", "permissiondetails")
-//     .leftJoinAndSelect("permission.roles", "roledetails")
-//     .orderBy(orderField, order)
-//     .getManyAndCount();
+    const [list, count] = await PostgresDataSource
+        .getRepository(Role)
+        .createQueryBuilder("roles")
+        .leftJoinAndSelect("roles.rolesPermission", "permission")
+        .leftJoinAndSelect("permission.permission", "permissiondetails")
+        .leftJoinAndSelect("permission.roles", "roledetails")
+        .orderBy(orderField, order)
+        .getManyAndCount();
 
 
-//   callback("", list, count);
-// }
+    callback("", list, count);
+}

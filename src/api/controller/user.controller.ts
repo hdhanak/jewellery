@@ -26,6 +26,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
         };
 
         const result = await addUser(where, payloadRequest);
+        console.log(result, "result");
         return successResponse(res, Constants.USERS.USER_ADDED, result);
 
 
