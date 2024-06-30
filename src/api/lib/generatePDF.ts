@@ -86,7 +86,7 @@ export const generatePDF = async (htmlCode: any, outputPath: string, response: a
 
         return [
           {
-            text: "APOGEE - Scan Report",
+            text: "jewellery - Scan Report",
             alignment: "center",
             margin: [0, 20],
             fontSize: 16,
