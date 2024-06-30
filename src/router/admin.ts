@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
 });
 
 // Create the multer instance with the storage configuration
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage, limits: { fileSize: 100000000 } });
 
 const route = express.Router();
 // pm2 start ts-node -- -P tsconfig.json index.ts
