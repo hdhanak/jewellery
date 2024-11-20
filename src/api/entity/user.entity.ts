@@ -55,10 +55,6 @@ export class Users extends BaseEntity {
             this.password = await bcrypt.hash(this.password, 10);
     }
 
-    @ManyToOne(() => Role, { cascade: true, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'role_id' })
-    'role': Role
-
     @Column({ default: false })
     "is_deleted": boolean; // if deleted = true
 

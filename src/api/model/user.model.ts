@@ -30,10 +30,7 @@ export async function LoginUser(where: object, password: string) {
     try {
         const userRepository = PostgresDataSource.getRepository(Users);
         const user = await userRepository.findOne({
-            where, relations: {
-                // customerorg: true,
-                role: true
-            }
+            where,
         });
 
 

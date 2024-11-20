@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
-export class Product1718298399038 implements MigrationInterface {
+export class CreateProduct1732099207817 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.createTable(new Table({
@@ -53,11 +53,9 @@ export class Product1718298399038 implements MigrationInterface {
                     isNullable: true,
                 },
                 {
-                    name: "metal",
-                    type: "integer",
-                    default: 0,
+                    name: "metal_id",
+                    type: "int",
                 },
-
                 {
                     name: "gold_purity",
                     type: "integer",
@@ -109,6 +107,11 @@ export class Product1718298399038 implements MigrationInterface {
                     isNullable: true,
                 },
                 {
+                    name: "extra_add_price",
+                    type: "numeric(10,2)",
+                    isNullable: true,
+                },
+                {
                     name: "status",
                     type: "boolean",
                     default: false,
@@ -116,12 +119,13 @@ export class Product1718298399038 implements MigrationInterface {
                 {
                     name: "created_date",
                     type: "timestamp",
-                    default: "CURRENT_TIMESTAMP",
+                    onUpdate: "now()",
                 },
                 {
                     name: "updated_date",
                     type: "timestamp",
                     isNullable: true,
+                    onUpdate: "now()",
                 },
             ],
         }), true);
@@ -130,6 +134,44 @@ export class Product1718298399038 implements MigrationInterface {
         await queryRunner.createForeignKey("product", new TableForeignKey({
             columnNames: ["product_category_id"],
             referencedTableName: "product_category",
+            referencedColumnNames: ["id"],
+            onDelete: "CASCADE",
+        }));
+        await queryRunner.createForeignKey("product", new TableForeignKey({
+            columnNames: ["metal_id"],
+            referencedTableName: "metal",
+            referencedColumnNames: ["id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+
+        }));
+
+        // Create the join table for Many-to-Many relation with Occasion
+        await queryRunner.createTable(new Table({
+            name: "product_occasion",
+            columns: [
+                {
+                    name: "occasion_id",
+                    type: "int",
+                },
+                {
+                    name: "product_id",
+                    type: "int",
+                },
+            ],
+        }));
+
+        // Add foreign keys for the Many-to-Many relationship
+        await queryRunner.createForeignKey("product_occasion", new TableForeignKey({
+            columnNames: ["product_id"],
+            referencedTableName: "product",
+            referencedColumnNames: ["id"],
+            onDelete: "CASCADE",
+        }));
+
+        await queryRunner.createForeignKey("product_occasion", new TableForeignKey({
+            columnNames: ["occasion_id"],
+            referencedTableName: "occasion", // Assuming you have an Occasion table
             referencedColumnNames: ["id"],
             onDelete: "CASCADE",
         }));

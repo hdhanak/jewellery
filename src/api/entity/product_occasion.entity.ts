@@ -8,12 +8,12 @@ export class ProductOccasion {
     @PrimaryColumn()
     "product_id": number;
 
-    @Column({ type: "boolean", default: false })
-    "status": boolean;
+    // @Column({ type: "boolean", default: false })
+    // "status": boolean;
 
-    @CreateDateColumn({ name: "created_date" })
-    "createdDate": Date;
+    // @CreateDateColumn({ name: "created_date" })
+    // "createdDate": Date;
 
-    @UpdateDateColumn({ name: "updated_date", default: null })
-    "updatedDate": Date;
+    // @UpdateDateColumn({ name: "updated_date", default: null })
+    // "updatedDate": Date;
 }

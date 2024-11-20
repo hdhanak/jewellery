@@ -14,28 +14,27 @@ export class User1718298381020 implements MigrationInterface {
                     generationStrategy: "increment",
                 },
                 {
-                    name: "user_code",
-                    type: "varchar",
-                    isNullable: true,
-                },
-                {
                     name: "first_name",
                     type: "varchar",
+                    length: "255",
+                    isNullable: true,
                 },
                 {
                     name: "last_name",
                     type: "varchar",
+                    length: "255",
                     isNullable: true,
                 },
                 {
                     name: "email",
                     type: "varchar",
+                    length: "255",
                     isUnique: true,
                 },
                 {
                     name: "phone",
                     type: "varchar",
-                    isUnique: true,
+                    length: "255",
                 },
                 {
                     name: "auth_token",
@@ -44,17 +43,15 @@ export class User1718298381020 implements MigrationInterface {
                     isNullable: true,
                 },
                 {
+                    name: "password",
+                    type: "varchar",
+                    length: "255",
+                    isNullable: true,
+                },
+                {
                     name: "status",
                     type: "boolean",
                     default: false,
-                },
-                {
-                    name: "password",
-                    type: "varchar",
-                },
-                {
-                    name: "role_id",
-                    type: "int",
                 },
                 {
                     name: "is_deleted",
@@ -70,22 +67,15 @@ export class User1718298381020 implements MigrationInterface {
                     name: "updated_date",
                     type: "timestamp",
                     isNullable: true,
+                    onUpdate: "now()",
                 },
                 {
                     name: "deleted_date",
                     type: "timestamp",
-                    isNullable: true,
+                    isNullable: true
                 },
             ],
         }), true);
-
-        // Add foreign key constraint to 'role_id' column referencing 'roles(id)'
-        await queryRunner.createForeignKey("users", new TableForeignKey({
-            columnNames: ["role_id"],
-            referencedTableName: "roles",
-            referencedColumnNames: ["id"],
-            onDelete: "CASCADE",
-        }));
     }
 
 

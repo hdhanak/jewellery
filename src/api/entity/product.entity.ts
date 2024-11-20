@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, JoinColumn, ManyToMany, ManyToOne, UpdateDateColumn, CreateDateColumn, JoinTable } from "typeorm";
 import { ProductCategory } from "./product_category.entity";
 import { ProductImage } from "./product_images.entity";
-import { ProductOccasion } from "./product_occasion.entity";
 import { Occasion } from "./occasion.entity";
+import { Metal } from "./metal.entity";
 @Entity({ 'name': 'product' })
 export class Product extends BaseEntity {
     @PrimaryGeneratedColumn()
@@ -33,12 +33,9 @@ export class Product extends BaseEntity {
     @Column({ type: 'bigint', default: null })
     'product_type': number;
 
-    // @ManyToMany(() => ProductOccasion)
-    // @JoinTable()
-    // "occasion": ProductOccasion[] // Office Wear // Traditional And Ethnic Wear
     @ManyToMany(() => Occasion)
     @JoinTable({
-        name: 'product_occasion', // Custom join table name
+        name: 'product_occasion',
         joinColumn: {
             name: 'product_id', // Name of the column in the join table that references the Product table
             referencedColumnName: 'id', // Column in the Product table that is referenced
@@ -51,8 +48,12 @@ export class Product extends BaseEntity {
     "occasion": Occasion[]; // Office Wear, Traditional And Ethnic Wear
 
 
-    @Column({ type: 'integer', default: 2 })
-    'metal': number; //2-Rose //1-white //0-yello
+    // @Column({ type: 'integer', default: 2 })
+    // 'metal': number; //2-Rose //1-white //0-yello
+
+    @ManyToOne(() => Metal, (metal) => metal.id)
+    @JoinColumn({ name: "metal_id" })
+    "metal": Metal;
 
     @Column({ type: 'integer', default: null })
     'gold_purity': number; //Karatage
@@ -95,4 +96,3 @@ export class Product extends BaseEntity {
 
 }
 
-// Specifications

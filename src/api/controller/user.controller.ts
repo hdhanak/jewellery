@@ -21,7 +21,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
             email: req.body.email,
             phone: req.body.phone,
             password: req.body.password,
-            role: req.body.role_id,
+            // role: req.body.role_id,
             status: req.body.status as boolean
         };
 
@@ -89,7 +89,7 @@ export const getAllUsers = (req: Request, res: Response): any => {
                         if (typeof req.body[key] === "string" && req.body[key] !== "") {
                             where[`${key}`] = `%${toLowerCase((req.body[key]).toString() as string)}%`;
                             filter.push(`cast(customerOrganization.companyName AS VARCHAR) ILIKE :${key}`);
-                        } else if (typeof req.body[key] === "number" && req.body[key] !== "") {
+                        } else if (typeof req.body[key] === "number") {
                             where[`${key}`] = `%${toLowerCase((req.body[key]).toString() as string)}%`;
                             filter.push(`cast(customerOrganization.id AS VARCHAR) ILIKE :${key}`);
                         }
