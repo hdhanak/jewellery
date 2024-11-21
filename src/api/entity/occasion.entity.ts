@@ -4,10 +4,10 @@ export class Occasion extends BaseEntity {
     @PrimaryGeneratedColumn()
     'id': number;
 
-    @Column()
+    @Column({ type: "varchar", length: 100, unique: true })
     'occasion': string;
 
-    @Column({ type: "boolean", default: false })
+    @Column({ type: "boolean", default: true })
     'status': boolean;
 
     @CreateDateColumn({ name: "created_date" })

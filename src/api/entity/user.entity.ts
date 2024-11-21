@@ -5,12 +5,9 @@ import {
     BaseEntity,
     BeforeInsert,
     BeforeUpdate,
-    OneToOne,
-    JoinColumn,
     CreateDateColumn,
     UpdateDateColumn,
     DeleteDateColumn,
-    ManyToOne,
     Unique
 } from "typeorm";
 import bcrypt = require("bcrypt")
@@ -18,26 +15,22 @@ import { Role } from "./role.entity";
 @Entity({ name: "users" })
 @Unique(['email'])
 @Unique(['phone'])
-@Unique(['user_code'])
 
 export class Users extends BaseEntity {
     @PrimaryGeneratedColumn()
     'id': number;
 
-    @Column({ type: "varchar", default: null })
-    'user_code': string
+    @Column({ type: "varchar", length: 255, nullable: true })
+    "first_name": string;
 
-    @Column()
-    'first_name': string;
+    @Column({ type: "varchar", length: 255, nullable: true })
+    "last_name": string;
 
-    @Column({ default: null })
-    'last_name': string;
+    @Column({ type: "varchar", length: 255, unique: true })
+    "email": string;
 
-    @Column()
-    'email': string;
-
-    @Column()
-    'phone': string;
+    @Column({ type: "varchar", length: 255 })
+    "phone": string;
 
     @Column({ default: null })
     'auth_token': string
@@ -64,7 +57,7 @@ export class Users extends BaseEntity {
     @UpdateDateColumn({ name: "updated_date", default: null })
     "updated_date": Date;
 
-    @DeleteDateColumn({ name: "deleted_date" })
+    @DeleteDateColumn({ name: "deleted_date", default: null })
     "deleted_date": Date;
 
 }

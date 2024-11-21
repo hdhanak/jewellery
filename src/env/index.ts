@@ -18,4 +18,5 @@ export const env = {
     NODE_ENV: process.env.NODE_ENV,
     FCM_SERVER_KEY: process.env.FCM_SERVER_KEY,
     SITE_TITLE: process.env.SITE_TITLE,
+    LOCAL_DB_URL: process.env.LOCAL_DB_URL
 }

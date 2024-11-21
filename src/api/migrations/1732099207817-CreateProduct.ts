@@ -119,13 +119,19 @@ export class CreateProduct1732099207817 implements MigrationInterface {
                 {
                     name: "created_date",
                     type: "timestamp",
-                    onUpdate: "now()",
+                    default: "now()",
                 },
                 {
                     name: "updated_date",
                     type: "timestamp",
                     isNullable: true,
                     onUpdate: "now()",
+                },
+            ],
+            uniques: [
+                {
+                    name: "UQ_metal_id_product_code", // Unique constraint name
+                    columnNames: ["metal_id", "product_code"],
                 },
             ],
         }), true);

@@ -16,6 +16,7 @@ export class Metal1732091422096 implements MigrationInterface {
                 {
                     name: "metal_name",
                     type: "varchar(200)",
+                    isUnique: true
                 },
                 {
                     name: "status",

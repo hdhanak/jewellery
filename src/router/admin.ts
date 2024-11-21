@@ -1,9 +1,7 @@
 import express from "express";
 import { login, signUp } from "../api/controller/user.controller";
 import { createProduct, deleteProductByIds, getAllProducts, getProducts, updateProductById } from "../api/controller/product.controller";
-import { updateProduct } from "../api/model/product.model";
 import { createProductCategory, deleteProductCategoryByIds, getAllProductCategory, updateProductCategoryByID } from "../api/controller/product._category.controller";
-import { deleteProductCategory, updateProductCategory } from "../api/model/product_category.model";
 import { verifyToken } from "../api/middlewares";
 import multer from 'multer';
 
@@ -11,10 +9,10 @@ import multer from 'multer';
 // Define storage for the uploaded files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-      cb(null, 'uploads/product_images'); // Set the destination for uploaded files
+    cb(null, 'uploads/product_images'); // Set the destination for uploaded files
   },
   filename: function (req, file, cb) {
-      cb(null, Date.now() + '-' + file.originalname); // Set the filename
+    cb(null, Date.now() + '-' + file.originalname); // Set the filename
   }
 });
 
@@ -34,8 +32,8 @@ export const AdminRoute = (router: express.Router): void => {
   route.post("/delete-product-categories", verifyToken, deleteProductCategoryByIds);
   route.post("/get-all-product-category", verifyToken, getAllProductCategory);
 
-  route.post("/create-product", verifyToken, upload.array('product_images', 10), createProduct);
-  route.post("/update-product", verifyToken, upload.array('product_images', 10), updateProductById);
+  route.post("/create-product", verifyToken, upload.array('product_images', 30), createProduct);
+  route.post("/update-product", verifyToken, upload.array('product_images', 30), updateProductById);
   route.post("/delete-product", verifyToken, deleteProductByIds);
   route.post("/get-product-by-id", verifyToken, getProducts);
   route.post("/get-all-product", verifyToken, getAllProducts);

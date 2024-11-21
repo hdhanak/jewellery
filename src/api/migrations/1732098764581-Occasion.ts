@@ -16,11 +16,12 @@ export class Occasion1732098764581 implements MigrationInterface {
                 {
                     name: "occasion",
                     type: "varchar",
+                    isUnique: true,
                 },
                 {
                     name: "status",
                     type: "boolean",
-                    default: false,
+                    default: true,
                 },
                 {
                     name: "created_date",

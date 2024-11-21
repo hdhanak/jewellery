@@ -4,7 +4,7 @@ export class ProductCategory extends BaseEntity {
     @PrimaryGeneratedColumn()
     'id': number;
 
-    @Column()
+    @Column({ type: "varchar", length: 100, unique: true })
     'product_category_code': string;
 
     @Column()
@@ -16,7 +16,7 @@ export class ProductCategory extends BaseEntity {
     @CreateDateColumn({ name: "created_date" })
     "createdDate": Date;
 
-    @UpdateDateColumn({ name: "updated_date" })
+    @UpdateDateColumn({ name: "updated_date", nullable: true })
     "updatedDate": Date;
 
 }

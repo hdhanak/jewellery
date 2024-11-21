@@ -1,21 +1,23 @@
-## Migration create 
+## Step For Start & Run Project
+# Migration create 
 npx typeorm migration:create ./src/api/migrations/CreateProductImage
 
-## Migration Run 
-npx typeorm-ts-node-commonjs migration:run -d src/config/db.ts 
-OR
+# Migration Run 
 npm run db:migrate
+OR
+npx typeorm-ts-node-commonjs migration:run -d src/config/db.ts 
 
-## Seeders Run
-npx ts-node --project tsconfig.json ./node_modules/typeorm-seeding/dist/cli.js -n src/config/db.ts seed
-
+# Seeders Run
+npm run db:seed
+OR 
+npx ts-node ./src/api/seeder/main.seeder.ts
 <!-- ## Migration Run - 2 (If above cmd not work) 
 npx typeorm-ts-node-esm migration:run -d src/config/db.ts    -->
 
-## install node modules
+# install node modules
 npm install --legacy-peer-deps
 
-## Setup database settings in `db.ts` file
+# Setup database settings in `db.ts` file
 
-## Project Run CMD
+# Project Run CMD
 npm run start:dev

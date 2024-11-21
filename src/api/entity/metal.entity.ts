@@ -6,7 +6,7 @@ export class Metal extends BaseEntity {
     @PrimaryGeneratedColumn()
     "id": number;
 
-    @Column({ type: "varchar", length: 200 })
+    @Column({ type: "varchar", length: 200, unique: true })
     "metal_name": string;
 
     @Column({ type: "boolean", default: true })

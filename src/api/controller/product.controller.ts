@@ -9,16 +9,13 @@ import { getOffset } from "../../helpers/utility";
 import { Constants } from "../../config/constants";
 import { addProduct, deleteProduct, findAllProducts, findProduct, updateProduct } from "../model/product.model";
 import { toLowerCase } from "fp-ts/lib/string";
-import { string } from "yup";
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
     try {
-        console.log(req.body, "req.body.product_category_id");
         let where: { email: string } = { email: req.body.email };
         if (!req.body.product_category_id) {
             return ErrorResponse(res, Constants.PRODUCTS.INVALID_CATEGORY_ID);
         }
-        console.log(req.body, "body");
         const productImages = (req.files as Express.Multer.File[]).map(file => file.filename);
 
         const payloadRequest: any = {
@@ -41,6 +38,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
             diamond_color: req.body.diamond_color as string,
             diamond_weight: parseFloat(req.body.diamond_weight as string),
             no_of_diamonds: parseInt(req.body.no_of_diamonds as string, 10),
+            metal: parseInt(req.body.metal_id as string, 10),
             status: req.body.status === 'true' // Converting to boolean
         };
 
@@ -48,16 +46,15 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
         return successResponse(res, Constants.PRODUCTS.CREATED_SUCCESSFULLY, result);
 
 
-    } catch (e) {
-        logger.error(e);
-        ErrorResponse(res, e);
+    } catch (e: any) {
+        console.log("Error: ", e);
+        ErrorResponse(res, e.message ? e.message : e);
     }
 };
 
 export const updateProductById = async (req: Request, res: Response): Promise<void> => {
     try {
         let where: { id: number } = { id: req.body.id };
-        console.log(req.files, "req.files");
 
         // Handle multiple file uploads
         const productImages = (req.files as Express.Multer.File[]).map(file => file.filename);
@@ -82,6 +79,7 @@ export const updateProductById = async (req: Request, res: Response): Promise<vo
             diamond_color: req.body.diamond_color as string,
             diamond_weight: parseFloat(req.body.diamond_weight as string),
             no_of_diamonds: parseInt(req.body.no_of_diamonds as string, 10),
+            metal: parseInt(req.body.metal_id as string, 10),
             status: req.body.status === 'true' // Converting to boolean
         };
 
@@ -90,14 +88,12 @@ export const updateProductById = async (req: Request, res: Response): Promise<vo
             occasion: req.body.occasion as string, // Assuming occasion is a comma-separated string
         };
 
-
-
         const result = await updateProduct(where, payloadRequest, relationEntityPayloadRequest);
         return successResponse(res, Constants.PRODUCTS.UPDATED_SUCCESSFULLY, result);
 
-    } catch (e) {
-        logger.error(e);
-        ErrorResponse(res, e);
+    } catch (e: any) {
+        console.log("Error: ", e);
+        ErrorResponse(res, e.message ? e.message : e);
     }
 };
 

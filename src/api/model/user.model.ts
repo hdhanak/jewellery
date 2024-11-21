@@ -11,7 +11,6 @@ export async function addUser(whereClause: object, userData: Partial<Users>): Pr
             throw new Error("Invalid parameters. Both whereClause and userData must be provided.");
         }
 
-        const where = JSON.parse(JSON.stringify(whereClause));
         const data = userData
 
         data.password = data.password;

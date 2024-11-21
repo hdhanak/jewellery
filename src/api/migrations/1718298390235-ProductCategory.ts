@@ -16,7 +16,8 @@ export class ProductCategory1718298390235 implements MigrationInterface {
                 {
                     name: "product_category_code",
                     type: "varchar",
-                    unsigned:true
+                    unsigned: true,
+                    isUnique: true
                 },
                 {
                     name: "product_category_name",
@@ -25,7 +26,8 @@ export class ProductCategory1718298390235 implements MigrationInterface {
                 {
                     name: "status",
                     type: "boolean",
-                    default: false,
+                    default: true,
+                    comment: "Indicates whether the product category is actively used worldwide"
                 },
                 {
                     name: "created_date",
@@ -35,7 +37,7 @@ export class ProductCategory1718298390235 implements MigrationInterface {
                 {
                     name: "updated_date",
                     type: "timestamp",
-                    default: null,
+                    isNullable: true
                 },
             ],
         }), true);

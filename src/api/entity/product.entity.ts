@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, JoinColumn, ManyToMany, ManyToOne, UpdateDateColumn, CreateDateColumn, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, JoinColumn, ManyToMany, ManyToOne, UpdateDateColumn, CreateDateColumn, JoinTable, OneToOne } from "typeorm";
 import { ProductCategory } from "./product_category.entity";
 import { ProductImage } from "./product_images.entity";
 import { Occasion } from "./occasion.entity";
@@ -51,7 +51,7 @@ export class Product extends BaseEntity {
     // @Column({ type: 'integer', default: 2 })
     // 'metal': number; //2-Rose //1-white //0-yello
 
-    @ManyToOne(() => Metal, (metal) => metal.id)
+    @OneToOne(() => Metal, (metal) => metal.id)
     @JoinColumn({ name: "metal_id" })
     "metal": Metal;
 
