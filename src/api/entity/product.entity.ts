@@ -3,6 +3,7 @@ import { ProductCategory } from "./product_category.entity";
 import { ProductImage } from "./product_images.entity";
 import { Occasion } from "./occasion.entity";
 import { Metal } from "./metal.entity";
+import { Users } from "./user.entity";
 @Entity({ 'name': 'product' })
 export class Product extends BaseEntity {
     @PrimaryGeneratedColumn()
@@ -22,6 +23,10 @@ export class Product extends BaseEntity {
 
     @Column({ type: 'varchar', default: null })
     'product_sub_detail': string;
+
+    @OneToOne(() => Users)
+    @JoinColumn({ name: "user_id" })
+    "users": Users
 
     @OneToMany(() => ProductImage, (product_images) => product_images.product)
     "product_images": ProductImage[]
@@ -84,6 +89,12 @@ export class Product extends BaseEntity {
 
     @Column({ type: 'bigint', default: null })
     'no_of_diamonds': number;
+
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    'extra_add_price': string;
+
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    'diamond_price_per_item': string;
 
     @Column({ type: "boolean", default: false })
     'status': boolean; //* -0 not-availble -availble

@@ -3,6 +3,13 @@ import { Request, Response, NextFunction } from "express";
 import { Constants } from "../../config/constants";
 import { decode } from "../lib/jwt";
 import { notFoundResponse, unauthorizedResponse } from "../../helpers/apiResponse";
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;  // Use `any` or replace with the correct type for `user`
+    }
+  }
+}
 const verifyToken = async (
   req: Request,
   res: Response,
@@ -14,7 +21,7 @@ const verifyToken = async (
     const { decoded, expired } = decode(token);
     if (decoded) {
       // @ts-ignore
-      req.body.user = decoded;
+      req.user = decoded
       console.log(req.body.user);
       if (req.body.userId != undefined) {
         if (req.body.userId != "") {

@@ -64,7 +64,7 @@ export async function addProduct(whereClause: object, productData: any): Promise
 export async function updateProduct(whereClause: object, updateData: any, relationEntityPayloadRequest: any): Promise<object> {
     try {
         const where = JSON.parse(JSON.stringify(whereClause));
-        console.log(where, "where");
+        console.log(updateData, "updateData");
 
         // Update the product information
         const updateResult = await PostgresDataSource
@@ -168,7 +168,7 @@ export async function deleteProduct(ids: any): Promise<object> {
     }
 }
 
-export async function findProduct(id: number): Promise<any | null> {
+export async function findProduct(userId: number, id: number): Promise<any | null> {
     try {
         const rawQuery = `
             SELECT 
@@ -177,10 +177,12 @@ export async function findProduct(id: number): Promise<any | null> {
             pc.product_category_name AS product_category_name, 
             m.metal_name,
             ARRAY_AGG(DISTINCT o.occasion) AS occasions, 
-            ARRAY_AGG(DISTINCT pi.image) AS product_images,
+            ARRAY_AGG(DISTINCT (JSONB_BUILD_OBJECT('image', pi.image, 'id', pi.id)::TEXT)) AS product_images,
             mdp.latest_price AS latest_metal_price,
             max(mdp.latest_date) AS latest_metal_date,
-            TO_CHAR(mdp.latest_price * p.gross_weight, 'FM999999999999.00') AS product_today_price
+            ROUND(((mdp.latest_price * CEIL((p.gold_purity::numeric*100)/24))/100 * p.gross_weight) + (p.no_of_diamonds::numeric*p.diamond_price_per_item::numeric
+            + ((((mdp.latest_price * CEIL((p.gold_purity::numeric*100)/24))/100 * p.gross_weight) + (p.no_of_diamonds::numeric*p.diamond_price_per_item::numeric))*12::numeric/100)
+            ),2) AS product_today_price
         FROM 
             product p
          JOIN product_category pc ON p.product_category_id = pc.id
@@ -199,6 +201,81 @@ export async function findProduct(id: number): Promise<any | null> {
                 SELECT 
                     metal_id, 
                     MAX(created_date) AS latest_date -- Get the latest date for each metal
+                FROM                
+                    metal_daily_price
+                GROUP BY 
+                    metal_id
+            ) latest_mdp ON mdp.metal_id = latest_mdp.metal_id AND mdp.created_date = latest_mdp.latest_date
+        ) mdp ON m.id = mdp.metal_id
+        WHERE 
+            p.id = $1 AND p.user_id = $2
+        GROUP BY 
+            p.id, pc.id, m.id, mdp.latest_price;
+
+        `;
+
+        const product = await PostgresDataSource.query(rawQuery, [id, userId]);
+        return product.length > 0 ? product[0] : null; // Assuming only one product matches
+    } catch (error) {
+        throw error;
+    }
+}
+export async function findAllProducts(
+    where: any,
+    userId: number,
+    skip: number,
+    limit: number,
+    orderField: string,
+    order: any,
+    search: string,
+    filter: string
+): Promise<Product[]> {
+    try {
+        // Dynamically build WHERE clause
+        let whereConditions = "1=1"; // Default condition for no filtering
+
+        // Add search condition if provided
+        if (search && search != "") {
+            whereConditions += ` AND (${search})`;
+        }
+
+        // Add filter condition if provided
+        if (filter) {
+            whereConditions += ` AND (${filter})`;
+        }
+
+        // Construct raw query with dynamic WHERE conditions
+        const rawQuery = `
+        SELECT 
+            p.*, 
+            pc.product_category_code AS product_category_code, 
+            pc.product_category_name AS product_category_name, 
+            m.metal_name,
+            ARRAY_AGG(DISTINCT o.occasion) AS occasions, 
+            ARRAY_AGG(DISTINCT (JSONB_BUILD_OBJECT('image', pi.image, 'id', pi.id)::TEXT)) AS product_images,
+            mdp.latest_price AS latest_metal_price,
+            MAX(mdp.latest_date) AS latest_metal_date,
+            ROUND(((mdp.latest_price * CEIL((p.gold_purity::numeric*100)/24))/100 * p.gross_weight) + (p.no_of_diamonds::numeric*p.diamond_price_per_item::numeric
+            + ((((mdp.latest_price * CEIL((p.gold_purity::numeric*100)/24))/100 * p.gross_weight) + (p.no_of_diamonds::numeric*p.diamond_price_per_item::numeric))*12::numeric/100)
+            ),2) AS product_today_price
+        FROM 
+            product p
+        JOIN product_category pc ON p.product_category_id = pc.id
+        JOIN product_occasion po ON po.product_id = p.id
+        JOIN occasion o ON po.occasion_id = o.id
+        JOIN product_image pi ON pi.product_id = p.id
+        JOIN metal m ON p.metal_id = m.id
+        JOIN (
+            SELECT 
+                mdp.metal_id, 
+                mdp.metal_price AS latest_price,
+                latest_mdp.latest_date AS latest_date
+            FROM 
+                metal_daily_price mdp
+            INNER JOIN (
+                SELECT 
+                    metal_id, 
+                    MAX(created_date) AS latest_date
                 FROM 
                     metal_daily_price
                 GROUP BY 
@@ -206,33 +283,16 @@ export async function findProduct(id: number): Promise<any | null> {
             ) latest_mdp ON mdp.metal_id = latest_mdp.metal_id AND mdp.created_date = latest_mdp.latest_date
         ) mdp ON m.id = mdp.metal_id
         WHERE 
-            p.id = $1
+            p.user_id = $3 AND ${whereConditions}
         GROUP BY 
-            p.id, pc.id, m.id, mdp.latest_price;
-
+            p.id, pc.id, m.id, mdp.latest_price
+        ORDER BY 
+            ${orderField} ${order}
+        LIMIT $1 OFFSET $2;
         `;
 
-        const product = await PostgresDataSource.query(rawQuery, [id]);
-        return product.length > 0 ? product[0] : null; // Assuming only one product matches
-    } catch (error) {
-        throw error;
-    }
-}
-export async function findAllProducts(where: any, skip: number, limit: number, orderField: string, order: any, search: string, filter: string): Promise<Product[]> {
-    try {
-        console.log(skip, limit, orderField, order, "skip, limit, orderField, order");
-        const query: SelectQueryBuilder<Product> = PostgresDataSource
-            .createQueryBuilder(Product, "product")
-            .leftJoinAndSelect("product.product_category", "product_category")
-            .leftJoinAndSelect("product.occasion", "occasion")
-            .leftJoinAndSelect("product.product_images", "product_images")
-            .where(search ? search : "1=1", { ...where })
-            .andWhere(filter ? filter : "1=1", { ...where })
-            .skip(skip)
-            .take(limit)
-            .orderBy(`${orderField}`, order);
-
-        const [products, count] = await query.getManyAndCount();
+        // Execute the query
+        const products = await PostgresDataSource.query(rawQuery, [limit, skip, userId]);
         return products;
     } catch (error) {
         throw error;

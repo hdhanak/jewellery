@@ -39,7 +39,10 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
             diamond_weight: parseFloat(req.body.diamond_weight as string),
             no_of_diamonds: parseInt(req.body.no_of_diamonds as string, 10),
             metal: parseInt(req.body.metal_id as string, 10),
-            status: req.body.status === 'true' // Converting to boolean
+            diamond_price_per_item: parseFloat(req.body.diamond_price_per_item as string),
+            extra_add_price: parseFloat(req.body.extra_add_price as string),
+            status: req.body.status === 'true',
+            users: req.body.userId
         };
 
         const result = await addProduct(where, payloadRequest);
@@ -56,36 +59,39 @@ export const updateProductById = async (req: Request, res: Response): Promise<vo
     try {
         let where: { id: number } = { id: req.body.id };
 
-        // Handle multiple file uploads
         const productImages = (req.files as Express.Multer.File[]).map(file => file.filename);
 
-        const payloadRequest: any = {
-            product_code: req.body.product_code as string,
-            product_name: req.body.product_name as string,
-            product_title: req.body.product_title as string,
-            product_detail: req.body.product_detail as string,
-            product_sub_detail: req.body.product_sub_detail as string,
-            // product_images: productImages.length > 0 ? productImages : req.body.product_images as string[],
-            product_category: parseInt(req.body.product_category_id as string, 10),
-            product_type: parseInt(req.body.product_type as string, 10),
-            // occasion: req.body.occasion as string, // Assuming occasion is a comma-separated string
-            gold_purity: parseInt(req.body.gold_purity as string, 10),
-            gross_weight: parseFloat(req.body.gross_weight as string),
-            gender: parseInt(req.body.gender as string, 10),
-            height: parseFloat(req.body.height as string),
-            width: parseFloat(req.body.width as string),
-            size: req.body.size as string, // Assuming size is meant to remain a string
-            diamond_clarity: parseInt(req.body.diamond_clarity as string, 10),
-            diamond_color: req.body.diamond_color as string,
-            diamond_weight: parseFloat(req.body.diamond_weight as string),
-            no_of_diamonds: parseInt(req.body.no_of_diamonds as string, 10),
-            metal: parseInt(req.body.metal_id as string, 10),
-            status: req.body.status === 'true' // Converting to boolean
+        const updateData: any = {
+            product_code: req.body?.product_code ?? undefined,
+            product_name: req.body?.product_name ?? undefined,
+            product_title: req.body?.product_title ?? undefined,
+            product_detail: req.body?.product_detail ?? undefined,
+            product_sub_detail: req.body?.product_sub_detail ?? undefined,
+            product_category: req.body?.product_category !== undefined ? parseInt(req.body?.product_category, 10) : undefined,
+            product_type: req.body?.product_type !== undefined ? parseInt(req.body?.product_type, 10) : undefined,
+            gold_purity: req.body?.gold_purity !== undefined ? parseInt(req.body?.gold_purity, 10) : undefined,
+            gross_weight: req.body?.gross_weight !== undefined ? parseFloat(req.body?.gross_weight) : undefined,
+            gender: req.body?.gender !== undefined ? parseInt(req.body?.gender, 10) : undefined,
+            height: req.body?.height !== undefined ? parseFloat(req.body?.height) : undefined,
+            width: req.body?.width !== undefined ? parseFloat(req.body?.width) : undefined,
+            size: req.body?.size ?? undefined,
+            diamond_clarity: req.body?.diamond_clarity !== undefined ? parseInt(req.body?.diamond_clarity, 10) : undefined,
+            diamond_color: req.body?.diamond_color ?? undefined,
+            diamond_weight: req.body?.diamond_weight !== undefined ? parseFloat(req.body?.diamond_weight) : undefined,
+            no_of_diamonds: req.body?.no_of_diamonds !== undefined ? parseInt(req.body?.no_of_diamonds, 10) : undefined,
+            metal: req.body?.metal_id !== undefined ? parseInt(req.body?.metal_id, 10) : undefined,
+            diamond_price_per_item: req.body?.diamond_price_per_item !== undefined ? parseFloat(req.body?.diamond_price_per_item) : undefined,
+            extra_add_price: req.body?.extra_add_price !== undefined ? parseFloat(req.body?.extra_add_price) : undefined,
+            status: req.body.status === 'true' ? true : false,
         };
 
+        // Remove undefined fields from updateData to avoid issues in the query
+        const payloadRequest = Object.fromEntries(
+            Object.entries(updateData).filter(([_, value]) => value !== undefined)
+        );
         const relationEntityPayloadRequest: any = {
             product_images: productImages.length > 0 ? productImages : req.body.product_images as string[],
-            occasion: req.body.occasion as string, // Assuming occasion is a comma-separated string
+            occasion: req.body.occasion as string,
         };
 
         const result = await updateProduct(where, payloadRequest, relationEntityPayloadRequest);
@@ -118,8 +124,9 @@ export const deleteProductByIds = async (req: Request, res: Response): Promise<v
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
     try {
         const id: number = req.body.id; // Assuming IDs are provided as a comma-separated string
+        const userId: number = req.user.user_id
 
-        const result = await findProduct(id);
+        const result = await findProduct(userId, id);
 
         // Return success response
         return successResponse(res, Constants.PRODUCTS.RETRIEVED_SUCCESSFULLY, result);
@@ -136,7 +143,7 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
             order_by
 
         } = req.body ?? {};
-
+        const userId: number = req.user.user_id
         let where: any = {};
         var searchArr: string[] = [];
         var filterArr: string[] = [];
@@ -144,35 +151,37 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
         let limit = (req.body.limit) ? parseInt(req.body.limit as string) : 10;
         let skip = (req.body.pageNo) ? getOffset(parseInt(req.body.pageNo as string), limit) : 0;
 
-        console.log("test");
         var keys = req.body && req.body.filter && Object.keys(req?.body?.filter);
         if (keys.length > 0) {
             for (const key in req.body?.filter) {
                 if (!(key == "limit" || key == "pageNo" || key == "customerOrganization" || key == "roles" || key == 'orderBy') && (req.body?.filter[key] || req.body?.filter[key] == false)) {
                     if (req.body.filter[key]) {
                         if ((typeof req.body.filter[key] === "string" || typeof req.body.filter[key] === "number" || typeof req.body.filter[key] === "boolean") && req.body.filter[key] !== "") {
-                            where[`${key}`] = `%${toLowerCase((req.body.filter[key]).toString() as string)}%`;
+                            const value = `%${toLowerCase((req.body.filter[key]).toString() as string)}%`;
                             if (key == 'occasion') {
-                                searchArr.push(`cast(occasion.${key} AS VARCHAR) ILIKE :${key}`);
+                                searchArr.push(`cast(o.${key} AS VARCHAR) ILIKE '${value}'`);
                             } else if (key == 'product_category_name') {
-                                searchArr.push(`cast(product_category.${key} AS VARCHAR) ILIKE :${key}`);
+                                searchArr.push(`cast(pc.${key} AS VARCHAR) ILIKE '${value}'`);
                             } else {
-                                searchArr.push(`cast(product.${key} AS VARCHAR) ILIKE :${key}`);
+                                searchArr.push(`cast(p.${key} AS VARCHAR) ILIKE '${value}'`);
                             }
                         }
                     }
                 }
 
                 if (Array.isArray(req.body.filter[key]) && req.body.filter[key].length > 0) {
-                    where[`${key}`] = req.body.filter[key];
-                    if (key == "occasion") {
-                        filterArr.push(`occasion.${key} IN(:...${key})`);
-                    } else if (key == "product_category_name") {
-                        filterArr.push(`product_category.${key} IN(:...${key})`);
+                    const value = req.body.filter[key];
+                    const formattedValues = value.map((v: any) => `'${v}'`).join(", "); // Format array values into a SQL-compatible string
+
+                    if (key === "occasion") {
+                        filterArr.push(`o.${key} IN(${formattedValues})`);
+                    } else if (key === "product_category_name") {
+                        filterArr.push(`pc.${key} IN(${formattedValues})`);
                     } else {
-                        filterArr.push(`product.${key} IN(:...${key})`);
+                        filterArr.push(`p.${key} IN(${formattedValues})`);
                     }
                 }
+
             }
         }
 
@@ -180,7 +189,7 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
         let search: string = searchArr.length > 0 ? searchArr.join(" AND ") : ``;
         let filter: string = filterArr.length > 0 ? filterArr.join(" AND ") : ``;
 
-        var tableName = (order_by?.field_name == 'occasion') ? "occasion" : (order_by?.field_name == 'product_category_name') ? "product_category" : "product";
+        var tableName = (order_by?.field_name == 'occasion') ? "o" : (order_by?.field_name == 'product_category_name') ? "pc" : "p";
         var fieldName = order_by?.field_name ?? "id";
 
         var orderField = `${tableName}.${fieldName}`;
@@ -190,7 +199,7 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
         console.log(search, "search");
         console.log(filter, "filter");
 
-        const result = await findAllProducts(where, skip, limit, orderField, order, search, filter);
+        const result = await findAllProducts(where, userId, skip, limit, orderField, order, search, filter);
 
         // Return success response
         return successResponse(res, Constants.PRODUCTS.RETRIEVED_ALL_SUCCESSFULLY, result);

@@ -1,6 +1,6 @@
 ## Step For Start & Run Project
 # Migration create 
-npx typeorm migration:create ./src/api/migrations/CreateProductImage
+npx typeorm migration:create ./src/api/migrations/UpdateProductAddFieldUserID
 
 # Migration Run 
 npm run db:migrate
