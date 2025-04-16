@@ -11,7 +11,8 @@
     "start:dev": "nodemon index.ts",
     "dev": "nodemon index.ts",
     "db:migrate": "npx typeorm-ts-node-commonjs migration:run -d src/config/db.ts",
-    "db:seed": "npx ts-node ./src/api/seeder/main.seeder.ts"
+    "db:seed": "npx ts-node ./src/api/seeder/main.seeder.ts",
+    "prod":"npm install --legacy-peer-deps && npm run build"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.2",
