@@ -1,5 +1,5 @@
 import express from "express";
-import { login, signUp } from "../api/controller/user.controller";
+import { login, signUp, welcome } from "../api/controller/user.controller";
 import { createProduct, deleteProductByIds, getAllProducts, getProducts, updateProductById } from "../api/controller/product.controller";
 import { createProductCategory, deleteProductCategoryByIds, getAllProductCategory, updateProductCategoryByID } from "../api/controller/product._category.controller";
 import { verifyToken } from "../api/middlewares";
@@ -24,6 +24,7 @@ const route = express.Router();
 /** guide router function */
 export const AdminRoute = (router: express.Router): void => {
   router.use("/admin", route);
+  route.get("/", welcome);
   route.post("/signup", signUp);
   route.post("/login", login);
 

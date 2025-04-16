@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { logger } from "../../lib/logger";
 import {
     ErrorResponse,
+    successMessage,
     successResponse,
     successResponseWithCount
 } from "../../helpers/apiResponse";
@@ -11,6 +12,16 @@ import { FindAllUsers, LoginUser, addUser } from "../model/user.model";
 import { Users } from "../entity/user.entity";
 import { Constants } from "../../config/constants";
 import internal from "stream";
+export const welcome = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const welcomeMsg = "Welcome to the Jewellery Project Backend. The server is up and running smoothly!"
+        return successMessage(res, Constants.USERS.USER_ADDED);
+
+    } catch (e) {
+        logger.error(e);
+        ErrorResponse(res, e);
+    }
+};
 
 export const signUp = async (req: Request, res: Response): Promise<void> => {
     try {
