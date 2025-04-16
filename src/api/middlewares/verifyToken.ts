@@ -22,7 +22,7 @@ const verifyToken = async (
     if (decoded) {
       // @ts-ignore
       req.user = decoded
-      console.log(req.body.user);
+      console.log(req.user,'22');
       if (req.body.userId != undefined) {
         if (req.body.userId != "") {
           if (req.body.userId != req.body.user.userId) {

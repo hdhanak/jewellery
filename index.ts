@@ -11,12 +11,14 @@ import { createRouter } from './src/router';
 /** create server module */
 export const createServer = ():void =>{
  const app = express();
- const port = env.APPPORT || 3000;
+ const port = env.APPPORT || 8000;
  const host = env.HOST;
 console.log(env.APPPORT,'env.APPPORT');
     /* To handle invalid JSON data request */
     app.use(express.json()); // for JSON data
     app.use(express.urlencoded({ limit: '100mb', parameterLimit: 100000000, extended: true })); // for URL-encoded data
+    app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
     // app.use(bodyParser.json({limit: '50mb'}));
 
     // /* For parsing urlencoded data */

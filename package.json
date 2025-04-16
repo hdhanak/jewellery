@@ -9,6 +9,7 @@
     "rebuild": "npm run build",
     "pm2": "pm2 restart build/index.js",
     "start:dev": "nodemon index.ts",
+    "dev": "nodemon index.ts",
     "db:migrate": "npx typeorm-ts-node-commonjs migration:run -d src/config/db.ts",
     "db:seed": "npx ts-node ./src/api/seeder/main.seeder.ts"
   },

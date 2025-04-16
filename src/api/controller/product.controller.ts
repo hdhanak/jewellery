@@ -17,6 +17,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
             return ErrorResponse(res, Constants.PRODUCTS.INVALID_CATEGORY_ID);
         }
         const productImages = (req.files as Express.Multer.File[]).map(file => file.filename);
+        console.log(req.user.user_id,"req.body.user");
 
         const payloadRequest: any = {
             product_code: req.body.product_code as string,
@@ -42,7 +43,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
             diamond_price_per_item: parseFloat(req.body.diamond_price_per_item as string),
             extra_add_price: parseFloat(req.body.extra_add_price as string),
             status: req.body.status === 'true',
-            users: req.body.userId
+            users: req.user.user_id
         };
 
         const result = await addProduct(where, payloadRequest);
@@ -124,7 +125,7 @@ export const deleteProductByIds = async (req: Request, res: Response): Promise<v
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
     try {
         const id: number = req.body.id; // Assuming IDs are provided as a comma-separated string
-        const userId: number = req.user.user_id
+        const userId: number = req?.user?.user_id || 1
 
         const result = await findProduct(userId, id);
 
@@ -143,16 +144,19 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
             order_by
 
         } = req.body ?? {};
-        const userId: number = req.user.user_id
+        // console.log(req.user.user_id,"req.body.user.userId");
+        
+        const userId: number =  1
         let where: any = {};
         var searchArr: string[] = [];
         var filterArr: string[] = [];
+        console.log("it sbackend");
 
         let limit = (req.body.limit) ? parseInt(req.body.limit as string) : 10;
         let skip = (req.body.pageNo) ? getOffset(parseInt(req.body.pageNo as string), limit) : 0;
 
         var keys = req.body && req.body.filter && Object.keys(req?.body?.filter);
-        if (keys.length > 0) {
+        if (keys?.length > 0) {
             for (const key in req.body?.filter) {
                 if (!(key == "limit" || key == "pageNo" || key == "customerOrganization" || key == "roles" || key == 'orderBy') && (req.body?.filter[key] || req.body?.filter[key] == false)) {
                     if (req.body.filter[key]) {
@@ -186,8 +190,8 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
         }
 
 
-        let search: string = searchArr.length > 0 ? searchArr.join(" AND ") : ``;
-        let filter: string = filterArr.length > 0 ? filterArr.join(" AND ") : ``;
+        let search: string = searchArr && searchArr?.length > 0 ? searchArr.join(" AND ") : ``;
+        let filter: string = filterArr?.length > 0 ? filterArr.join(" AND ") : ``;
 
         var tableName = (order_by?.field_name == 'occasion') ? "o" : (order_by?.field_name == 'product_category_name') ? "pc" : "p";
         var fieldName = order_by?.field_name ?? "id";

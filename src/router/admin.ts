@@ -35,7 +35,7 @@ export const AdminRoute = (router: express.Router): void => {
   route.post("/create-product", verifyToken, upload.array('product_images', 30), createProduct);
   route.post("/update-product", verifyToken, upload.array('product_images', 30), updateProductById);
   route.post("/delete-product", verifyToken, deleteProductByIds);
-  route.post("/get-product-by-id", verifyToken, getProducts);
-  route.post("/get-all-product", verifyToken, getAllProducts);
+  route.post("/get-product-by-id", getProducts);
+  route.post("/get-all-product", getAllProducts);
 
 };

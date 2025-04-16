@@ -260,12 +260,12 @@ export async function findAllProducts(
             ),2) AS product_today_price
         FROM 
             product p
-        JOIN product_category pc ON p.product_category_id = pc.id
-        JOIN product_occasion po ON po.product_id = p.id
-        JOIN occasion o ON po.occasion_id = o.id
-        JOIN product_image pi ON pi.product_id = p.id
-        JOIN metal m ON p.metal_id = m.id
-        JOIN (
+         JOIN product_category pc ON p.product_category_id = pc.id
+         JOIN product_occasion po ON po.product_id = p.id
+         JOIN occasion o ON po.occasion_id = o.id
+         JOIN product_image pi ON pi.product_id = p.id
+         JOIN metal m ON p.metal_id = m.id
+        left JOIN (
             SELECT 
                 mdp.metal_id, 
                 mdp.metal_price AS latest_price,
