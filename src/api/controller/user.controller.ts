@@ -15,7 +15,7 @@ import internal from "stream";
 export const welcome = async (req: Request, res: Response): Promise<void> => {
     try {
         const welcomeMsg = "Welcome to the Jewellery Project Backend. The server is up and running smoothly!"
-        return successMessage(res, Constants.USERS.USER_ADDED);
+        return successMessage(res, welcomeMsg);
 
     } catch (e) {
         logger.error(e);
