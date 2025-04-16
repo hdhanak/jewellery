@@ -13,7 +13,7 @@ const options: DataSourceOptions & SeederOptions = {
   // username: "postgres",
   // password: "root",
   // database: "jewellery_shop_db_dev",
-  ssl: false,
+  ssl: true,
   logging: true,
   entities: [path.join(__dirname, "../api/entity/*.{ts,js}")],
   // entities: [Metal],
