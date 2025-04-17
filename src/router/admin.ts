@@ -39,4 +39,6 @@ export const AdminRoute = (router: express.Router): void => {
   route.post("/get-product-by-id", getProducts);
   route.post("/get-all-product", getAllProducts);
 
+  
+
 };
