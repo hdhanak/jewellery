@@ -23,7 +23,7 @@ const route = express.Router();
 // pm2 start ts-node -- -P tsconfig.json index.ts
 /** guide router function */
 export const AdminRoute = (router: express.Router): void => {
-  router.use("/admin", route);
+  router.use("/", route);
   route.get("/", welcome);
   route.post("/signup", signUp);
   route.post("/login", login);

@@ -55,7 +55,7 @@ console.log(env.APPPORT,'env.APPPORT');
 // dbConnectionCreate();
 // pgConnectionCreate();
 /** router */
-app.use("/v1",createRouter());
+app.use("/",createRouter());
 app.listen(port,()=>{
     logger.info(`CT listening on port http://${host}:${port}`);
 })
