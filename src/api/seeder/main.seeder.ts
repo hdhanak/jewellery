@@ -28,9 +28,9 @@ async function runSeeder() {
         await occasionRepository.save(occasionEntities);
 
         const metals = [
-            { name: "Silver" },
             { name: "Gold" },
-            { name: "Platinum" },
+            { name: "Rose Gold" },
+            { name: "Silver" },
         ];
         const metalRepository = PostgresDataSource.getRepository(Metal);
 

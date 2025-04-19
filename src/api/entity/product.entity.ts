@@ -63,37 +63,37 @@ export class Product extends BaseEntity {
     @Column({ type: 'integer', default: null })
     'gold_purity': number; //Karatage
 
-    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
     "gross_weight": string;
 
     @Column({ type: 'integer', default: 1 })
     'gender': number; //0-male 1-female 2-other
 
-    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
     'height': string;
 
-    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
     'width': string;
 
-    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
     'size': string;
 
-    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
     'diamond_clarity': string;
 
     @Column({ type: 'varchar', default: null })
     'diamond_color': string;
 
-    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
     'diamond_weight': string;
 
     @Column({ type: 'bigint', default: null })
     'no_of_diamonds': number;
 
-    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
     'extra_add_price': string;
 
-    @Column({ type: 'numeric', precision: 10, scale: 2, default: null })
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
     'diamond_price_per_item': string;
 
     @Column({ type: "boolean", default: false })

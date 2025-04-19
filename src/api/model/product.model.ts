@@ -228,7 +228,8 @@ export async function findAllProducts(
     orderField: string,
     order: any,
     search: string,
-    filter: string
+    filter: string,
+    productTodayPriceFilter:string
 ): Promise<Product[]> {
     try {
         // Dynamically build WHERE clause
@@ -243,56 +244,60 @@ export async function findAllProducts(
         if (filter) {
             whereConditions += ` AND (${filter})`;
         }
-
+        const productTodayPriceFilterCondition = productTodayPriceFilter && productTodayPriceFilter != "" ? productTodayPriceFilter : "1=1"
         // Construct raw query with dynamic WHERE conditions
         const rawQuery = `
-        SELECT 
-            p.*, 
-            pc.product_category_code AS product_category_code, 
-            pc.product_category_name AS product_category_name, 
-            m.metal_name,
-            ARRAY_AGG(DISTINCT o.occasion) AS occasions, 
-            ARRAY_AGG(DISTINCT (JSONB_BUILD_OBJECT('image', pi.image, 'id', pi.id)::TEXT)) AS product_images,
-            mdp.latest_price AS latest_metal_price,
-            MAX(mdp.latest_date) AS latest_metal_date,
-            ROUND(((mdp.latest_price * CEIL((p.gold_purity::numeric*100)/24))/100 * p.gross_weight) + (p.no_of_diamonds::numeric*p.diamond_price_per_item::numeric
-            + ((((mdp.latest_price * CEIL((p.gold_purity::numeric*100)/24))/100 * p.gross_weight) + (p.no_of_diamonds::numeric*p.diamond_price_per_item::numeric))*12::numeric/100)
-            ),2) AS product_today_price
-        FROM 
-            product p
-         JOIN product_category pc ON p.product_category_id = pc.id
-         JOIN product_occasion po ON po.product_id = p.id
-         JOIN occasion o ON po.occasion_id = o.id
-         JOIN product_image pi ON pi.product_id = p.id
-         JOIN metal m ON p.metal_id = m.id
-        left JOIN (
-            SELECT 
-                mdp.metal_id, 
-                mdp.metal_price AS latest_price,
-                latest_mdp.latest_date AS latest_date
+    WITH product_all_details AS (
+       SELECT 
+                p.*, 
+                pc.product_category_code AS product_category_code, 
+                pc.product_category_name AS product_category_name, 
+                m.metal_name,
+                ARRAY_AGG(DISTINCT o.occasion) AS occasions, 
+                ARRAY_AGG(DISTINCT (JSONB_BUILD_OBJECT('image', pi.image, 'id', pi.id)::TEXT)) AS product_images,
+                mdp.latest_price AS latest_metal_price,
+                MAX(mdp.latest_date) AS latest_metal_date,
+                ROUND(((mdp.latest_price * CEIL((p.gold_purity::numeric*100)/24))/100 * p.gross_weight) + (p.no_of_diamonds::numeric*p.diamond_price_per_item::numeric
+                + ((((mdp.latest_price * CEIL((p.gold_purity::numeric*100)/24))/100 * p.gross_weight) + (p.no_of_diamonds::numeric*p.diamond_price_per_item::numeric))*12::numeric/100)
+                ),2) AS product_today_price
             FROM 
-                metal_daily_price mdp
-            INNER JOIN (
+                product p
+            JOIN product_category pc ON p.product_category_id = pc.id
+            JOIN product_occasion po ON po.product_id = p.id
+            JOIN occasion o ON po.occasion_id = o.id
+            JOIN product_image pi ON pi.product_id = p.id
+            JOIN metal m ON p.metal_id = m.id
+            left JOIN (
                 SELECT 
-                    metal_id, 
-                    MAX(created_date) AS latest_date
+                    mdp.metal_id, 
+                    mdp.metal_price AS latest_price,
+                    latest_mdp.latest_date AS latest_date
                 FROM 
-                    metal_daily_price
-                GROUP BY 
-                    metal_id
-            ) latest_mdp ON mdp.metal_id = latest_mdp.metal_id AND mdp.created_date = latest_mdp.latest_date
-        ) mdp ON m.id = mdp.metal_id
+                    metal_daily_price mdp
+                INNER JOIN (
+                    SELECT 
+                        metal_id, 
+                        MAX(created_date) AS latest_date
+                    FROM 
+                        metal_daily_price
+                    GROUP BY 
+                        metal_id
+                ) latest_mdp ON mdp.metal_id = latest_mdp.metal_id AND mdp.created_date = latest_mdp.latest_date
+            ) mdp ON m.id = mdp.metal_id
+            WHERE 
+                ${whereConditions}
+            GROUP BY 
+                p.id, pc.id, m.id, mdp.latest_price
+        )SELECT * FROM product_all_details 
         WHERE 
-            p.user_id = $3 AND ${whereConditions}
-        GROUP BY 
-            p.id, pc.id, m.id, mdp.latest_price
+                ${productTodayPriceFilterCondition}
         ORDER BY 
             ${orderField} ${order}
         LIMIT $1 OFFSET $2;
         `;
 
         // Execute the query
-        const products = await PostgresDataSource.query(rawQuery, [limit, skip, userId]);
+        const products = await PostgresDataSource.query(rawQuery, [limit, skip]);
         return products;
     } catch (error) {
         throw error;
